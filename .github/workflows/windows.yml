@@ -89,6 +89,9 @@ jobs:
       - name: Set up env
         run: |
           echo "PKG_CONFIG=C:\gtk-build\gtk\x64\release\bin\pkgconf.exe" >> $GITHUB_ENV
+          echo "GETTEXT_BIN_DIR=C:\gtk-build\gtk\x64\release\bin" >> $GITHUB_ENV
+          echo "GETTEXT_LIB_DIR=C:\gtk-build\gtk\x64\release\lib" >> $GITHUB_ENV
+          echo "GETTEXT_INCLUDE_DIR=C:\gtk-build\gtk\x64\release\include" >> $GITHUB_ENV
           echo "C:\gtk-build\gtk\x64\release\bin" >> $GITHUB_PATH
         shell: bash
 
