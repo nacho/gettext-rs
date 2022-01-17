@@ -43,6 +43,13 @@ fn get_windows_gnu_root() -> String {
         .unwrap_or_else(|| fail("Failed to get gnu installation root dir"))
 }
 
+fn get_windows_msvc_root() -> String {
+    // attempt to find the installation directory for the msvc distribution
+    env("LIBPATH")
+        .or_else(|| env("LIB"))
+        .unwrap_or_else(|| fail("Failed to get gnu installation root dir"))
+}
+
 fn posix_path(path: &Path) -> String {
     let path = path
         .to_str()
@@ -89,16 +96,22 @@ fn main() {
         if target.contains("linux") && (target.contains("-gnu") || target.contains("-musl")) {
             // intl is part of glibc and musl
             return;
-        } else if target.contains("windows") && target.contains("-gnu") {
-            // gettext doesn't come with a pkg-config file
-            let gnu_root = get_windows_gnu_root();
-            println!("cargo:rustc-link-search=native={}/lib", &gnu_root);
-            println!("cargo:rustc-link-search=native={}/../usr/lib", &gnu_root);
-            println!("cargo:rustc-link-lib=dylib=intl");
-            // FIXME: should pthread support be optional?
-            // It is needed by `cargo test` while generating doc
-            println!("cargo:rustc-link-lib=dylib=pthread");
-            println!("cargo:include={}/../usr/include", &gnu_root);
+        } else if target.contains("windows") {
+            if target.contains("-gnu") {
+                // gettext doesn't come with a pkg-config file
+                let gnu_root = get_windows_gnu_root();
+                println!("cargo:rustc-link-search=native={}/lib", &gnu_root);
+                println!("cargo:rustc-link-search=native={}/../usr/lib", &gnu_root);
+                println!("cargo:rustc-link-lib=dylib=intl");
+                // FIXME: should pthread support be optional?
+                // It is needed by `cargo test` while generating doc
+                println!("cargo:rustc-link-lib=dylib=pthread");
+                println!("cargo:include={}/../usr/include", &gnu_root);
+            } else if target.contains("-msvc") {
+                let msvc_root = get_windows_msvc_root();
+                println!("cargo:rustc-link-search=native={}/lib", &msvc_root);
+                println!("cargo:rustc-link-search=native={}/../usr/lib", &msvc_root);
+            }
             return;
         }
         // else can't use system gettext on this target
