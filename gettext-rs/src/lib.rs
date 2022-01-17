@@ -371,14 +371,25 @@ where
         use std::ffi::OsString;
         use std::os::windows::ffi::{OsStrExt, OsStringExt};
 
-        let mut dirname: Vec<u16> = dirname.encode_wide().collect();
-        if dirname.contains(&0) {
-            panic!("`dirname` contains an internal 0 byte");
+        let mut dirname = if cfg!(target_env = "msvc") {
+            dirname.into_vec()
+        } else {
+            let dir: Vec<u16> = dirname.encode_wide().collect();
+            if dir.contains(&0) {
+                panic!("`dirname` contains an internal 0 byte");
+            }
+            // Trailing zero to mark the end of the C string.
+            dir.push(0);
+            dir
         }
-        // Trailing zero to mark the end of the C string.
-        dirname.push(0);
+
         unsafe {
-            let mut ptr = ffi::wbindtextdomain(domainname.as_ptr(), dirname.as_ptr());
+            let mut ptr = if cfg!(target_env = "msvc") {
+                ffi::bindtextdomain(domainname.as_ptr(), dirname.as_ptr())
+            } else {
+                ffi::wbindtextdomain(domainname.as_ptr(), dirname.as_ptr())
+            }
+
             if ptr.is_null() {
                 Err(io::Error::last_os_error())
             } else {

@@ -25,7 +25,7 @@ extern "C" {
     ) -> *mut c_char;
 
     pub fn bindtextdomain(domain: *const c_char, dir: *const c_char) -> *mut c_char;
-    #[cfg(windows)]
+    #[cfg(all(windows, target_env = "gnu"))]
     // The "wbindtextdomain" symbol is not exposed directly in the compiled
     // .DLL file when building using MinGW. See: https://github.com/Koka/gettext-rs/pull/79
     fn libintl_wbindtextdomain(domain: *const c_char, dir: *const wchar_t) -> *mut wchar_t;
@@ -37,7 +37,7 @@ extern "C" {
     pub fn setlocale(category: c_int, locale: *const c_char) -> *mut c_char;
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, target_env = "gnu"))]
 pub unsafe fn wbindtextdomain(domain: *const c_char, dir: *const wchar_t) -> *mut wchar_t {
     libintl_wbindtextdomain(domain, dir)
 }
